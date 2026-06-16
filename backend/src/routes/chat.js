@@ -27,13 +27,10 @@ router.post("/", upload.single("pdf"), sanitizeMiddleware, async (req, res) => {
       req.file.buffer = null;
     }
 
-    let parsedHistory = [];
-    try { parsedHistory = history ? JSON.parse(history) : []; } catch { parsedHistory = []; }
-
     const response = await generateResponse({
       systemPrompt: TOOLS[toolId].systemPrompt,
       userMessage, pdfPart,
-      history: parsedHistory,
+      history: req.body.history || [],
     });
 
     logger.info("Response generated", { toolId, hasPdf: !!req.file, ip: req.ip });

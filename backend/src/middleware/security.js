@@ -10,7 +10,7 @@ function applySecurityMiddleware(app) {
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:"],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", ALLOWED],
         frameSrc: ["'none'"],
         objectSrc: ["'none'"],
       },
