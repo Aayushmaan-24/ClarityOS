@@ -20,9 +20,12 @@ async function generateResponse({ systemPrompt, userMessage, pdfPart, history })
   }
   contents.push({ role: "user", parts: currentParts });
 
-  const result = await model.generateContent({ systemInstruction: systemPrompt, contents });
+  const result = await model.generateContent({
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    contents
+  });
+  const text = result.response.text();
   const candidate = result.response.candidates?.[0];
-  const text = candidate?.content?.parts?.filter(p => p.text).map(p => p.text).join("") || "";
 
   const sources = [];
   const seen = new Set();
