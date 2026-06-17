@@ -25,9 +25,9 @@ export default function InputBar({ onSend, isLoading }) {
       <div className="input-wrap">
         {pdf && (
           <div className="pdf-preview">
-            <span>📄</span>
+            <span aria-hidden="true">📄</span>
             <span className="pdf-name">{pdf.name}</span>
-            <button onClick={() => setPdf(null)}>✕</button>
+            <button onClick={() => setPdf(null)} aria-label="Remove PDF">✕</button>
           </div>
         )}
         <textarea value={text}
@@ -40,11 +40,20 @@ export default function InputBar({ onSend, isLoading }) {
           placeholder="Paste document text, upload a PDF 📎, or describe your situation..."
           rows={1}
           disabled={isLoading}
+          aria-label="Message text"
         />
       </div>
       <input type="file" ref={ref} accept="application/pdf" style={{display:"none"}} onChange={onFile}/>
-      <button className="upload-btn" onClick={() => ref.current?.click()} disabled={isLoading} title="Upload PDF">📎</button>
-      <button className="send-btn" onClick={send} disabled={isLoading || (!text.trim() && !pdf)}>➤</button>
+      <button className="upload-btn" onClick={() => ref.current?.click()} disabled={isLoading} title="Upload PDF" aria-label="Upload PDF">📎</button>
+      <button
+        className="send-btn"
+        onClick={send}
+        disabled={isLoading || (!text.trim() && !pdf)}
+        aria-label="Send message"
+        title={isLoading ? "Sending..." : (text.trim() || pdf ? "Send Message" : "Enter text or upload PDF to send")}
+      >
+        ➤
+      </button>
     </div>
   );
 }
