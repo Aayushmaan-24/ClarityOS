@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useMemo, memo } from "react";
 import DOMPurify from "dompurify";
 
+// Bolt ⚡: Optimization - fmt and sanitization is expensive for large texts.
+// Using useMemo inside the component and memoizing the component itself
+// prevents redundant processing on every parent re-render.
 function fmt(text) {
   let html = text
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
@@ -16,7 +19,20 @@ function fmt(text) {
   });
 }
 
-export default function MessageBubble({ message, toolIcon, toolName }) {
+const MessageBubble = memo(({ message, toolIcon, toolName }) => {
+  const formattedContent = useMemo(() => {
+    if (message.role !== "assistant") return null;
+
+    const srcHTML = message.sources?.length
+      ? `<div class="sources-strip">🔗 <strong>Sources:</strong> ${
+          [...new Map(message.sources.map(s=>[s.uri,s])).values()].slice(0,5)
+            .map(s=>`<a href="${s.uri}" target="_blank" rel="noopener noreferrer">${s.title}</a>`).join(" · ")
+        }</div>`
+      : "";
+
+    return fmt(message.text) + srcHTML;
+  }, [message.text, message.sources, message.role]);
+
   if (message.role === "user") return (
     <div className="message user">
       <div className="msg-av u-av">👤</div>
@@ -32,19 +48,16 @@ export default function MessageBubble({ message, toolIcon, toolName }) {
       <div className="msg-bubble"><span className="red-flag">⚠️ {message.text}</span></div>
     </div>
   );
-  const srcHTML = message.sources?.length
-    ? `<div class="sources-strip">🔗 <strong>Sources:</strong> ${
-        [...new Map(message.sources.map(s=>[s.uri,s])).values()].slice(0,5)
-          .map(s=>`<a href="${s.uri}" target="_blank" rel="noopener noreferrer">${s.title}</a>`).join(" · ")
-      }</div>`
-    : "";
+
   return (
     <div className="message ai">
       <div className="msg-av ai-av">{toolIcon}</div>
       <div>
         <div className="expert-tag">{toolIcon} {toolName}</div>
-        <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: fmt(message.text) + srcHTML }}/>
+        <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: formattedContent }}/>
       </div>
     </div>
   );
-}
+});
+
+export default MessageBubble;
