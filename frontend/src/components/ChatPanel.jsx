@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import DOMPurify from "dompurify";
 import { useChat } from "../hooks/useChat";
 import MessageBubble from "./MessageBubble";
 import InputBar from "./InputBar";
@@ -31,7 +32,7 @@ export default function ChatPanel({ toolId, tool }) {
           <div className="msg-av ai-av">{tool.icon}</div>
           <div>
             <div className="expert-tag">{tool.icon} {tool.name}</div>
-            <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: tool.greeting }}/>
+            <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tool.greeting) }}/>
           </div>
         </div>
         {messages.map((msg, i) => (

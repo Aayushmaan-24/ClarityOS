@@ -17,33 +17,63 @@ function fmt(text) {
 }
 
 export default function MessageBubble({ message, toolIcon, toolName }) {
-  if (message.role === "user") return (
-    <div className="message user">
-      <div className="msg-av u-av">👤</div>
-      <div className="msg-bubble">
-        {message.fileName && <div style={{fontWeight:600,marginBottom:4}}>📄 {message.fileName}</div>}
-        {message.text}
+  if (message.role === "user")
+    return (
+      <div className="message user">
+        <div className="msg-av u-av">👤</div>
+        <div className="msg-bubble">
+          {message.fileName && (
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>
+              📄 {message.fileName}
+            </div>
+          )}
+          {message.text}
+        </div>
       </div>
-    </div>
-  );
-  if (message.role === "error") return (
-    <div className="message ai">
-      <div className="msg-av ai-av">{toolIcon}</div>
-      <div className="msg-bubble"><span className="red-flag">⚠️ {message.text}</span></div>
-    </div>
-  );
-  const srcHTML = message.sources?.length
-    ? `<div class="sources-strip">🔗 <strong>Sources:</strong> ${
-        [...new Map(message.sources.map(s=>[s.uri,s])).values()].slice(0,5)
-          .map(s=>`<a href="${s.uri}" target="_blank" rel="noopener noreferrer">${s.title}</a>`).join(" · ")
-      }</div>`
-    : "";
+    );
+
+  if (message.role === "error")
+    return (
+      <div className="message ai">
+        <div className="msg-av ai-av">{toolIcon}</div>
+        <div className="msg-bubble">
+          <span className="red-flag">⚠️ {message.text}</span>
+        </div>
+      </div>
+    );
+
+  // Security: Render sources as React elements to ensure escaping and validate URIs
+  const uniqueSources = [
+    ...new Map((message.sources || []).map((s) => [s.uri, s])).values(),
+  ]
+    .slice(0, 5)
+    .filter(
+      (s) => s.uri?.startsWith("http://") || s.uri?.startsWith("https://")
+    );
+
   return (
     <div className="message ai">
       <div className="msg-av ai-av">{toolIcon}</div>
       <div>
-        <div className="expert-tag">{toolIcon} {toolName}</div>
-        <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: fmt(message.text) + srcHTML }}/>
+        <div className="expert-tag">
+          {toolIcon} {toolName}
+        </div>
+        <div className="msg-bubble">
+          <div dangerouslySetInnerHTML={{ __html: fmt(message.text) }} />
+          {uniqueSources.length > 0 && (
+            <div className="sources-strip">
+              🔗 <strong>Sources:</strong>{" "}
+              {uniqueSources.map((s, idx) => (
+                <React.Fragment key={s.uri}>
+                  {idx > 0 && " · "}
+                  <a href={s.uri} target="_blank" rel="noopener noreferrer">
+                    {s.title || s.uri}
+                  </a>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
