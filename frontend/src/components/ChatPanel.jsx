@@ -9,7 +9,10 @@ export default function ChatPanel({ toolId, tool }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    if (prevTool.current !== toolId) { resetChat(); prevTool.current = toolId; }
+    if (prevTool.current !== toolId) {
+      resetChat();
+      prevTool.current = toolId;
+    }
   }, [toolId, resetChat]);
 
   useEffect(() => {
@@ -24,29 +27,31 @@ export default function ChatPanel({ toolId, tool }) {
           <div className="ph-name">{tool.fullName}</div>
           <div className="ph-role">{tool.role}</div>
         </div>
-        <div className="ph-status"><div className="status-dot"/>Gemini + Live Search</div>
+        <div className="ph-status">
+          <div className="live-dot" />
+          <span>Live Analysis</span>
+        </div>
       </div>
+
       <div className="chat-area">
         <div className="message ai">
-          <div className="msg-av ai-av">{tool.icon}</div>
-          <div>
-            <div className="expert-tag">{tool.icon} {tool.name}</div>
-            <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: tool.greeting }}/>
-          </div>
+          <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: tool.greeting }} />
         </div>
+
         {messages.map((msg, i) => (
-          <MessageBubble key={i} message={msg} toolIcon={tool.icon} toolName={tool.name}/>
+          <MessageBubble key={i} message={msg} toolIcon={tool.icon} toolName={tool.name} />
         ))}
+
         {isLoading && (
           <div className="message ai">
-            <div className="msg-av ai-av">{tool.icon}</div>
-            <div className="typing">
-              <div className="dot"/><div className="dot"/><div className="dot"/>
+            <div className="msg-bubble typing">
+              <div className="dot" /><div className="dot" /><div className="dot" />
             </div>
           </div>
         )}
-        <div ref={bottomRef}/>
+        <div ref={bottomRef} />
       </div>
+
       {messages.length === 0 && (
         <div className="quick-wrap">
           {tool.prompts.map(p => (
@@ -54,7 +59,8 @@ export default function ChatPanel({ toolId, tool }) {
           ))}
         </div>
       )}
-      <InputBar onSend={sendMessage} isLoading={isLoading}/>
+
+      <InputBar onSend={sendMessage} isLoading={isLoading} />
     </div>
   );
 }

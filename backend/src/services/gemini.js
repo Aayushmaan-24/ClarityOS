@@ -1,6 +1,8 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not set in .env");
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error("GEMINI_API_KEY not set in .env");
+}
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
@@ -11,30 +13,50 @@ const model = genAI.getGenerativeModel({
 
 async function generateResponse({ systemPrompt, userMessage, pdfPart, history }) {
   const currentParts = [];
-  if (pdfPart) currentParts.push(pdfPart);
-  currentParts.push({ text: userMessage || "Analyse this document using your full framework." });
+  if (pdfPart) {
+    currentParts.push(pdfPart);
+  }
+
+  if (userMessage || !pdfPart) {
+    currentParts.push({ text: userMessage || "Analyse this document using your full framework." });
+  }
 
   const contents = [];
-  for (const turn of history) {
-    contents.push({ role: turn.role, parts: [{ text: turn.content }] });
+  if (history && Array.isArray(history)) {
+    for (const turn of history) {
+      contents.push({
+        role: turn.role === "assistant" ? "model" : turn.role,
+        parts: [{ text: turn.content }]
+      });
+    }
   }
+
   contents.push({ role: "user", parts: currentParts });
 
   const result = await model.generateContent({
     systemInstruction: { parts: [{ text: systemPrompt }] },
     contents
   });
+
   const text = result.response.text();
   const candidate = result.response.candidates?.[0];
 
   const sources = [];
   const seen = new Set();
-  for (const chunk of candidate?.groundingMetadata?.groundingChunks || []) {
-    if (chunk.web?.uri && !seen.has(chunk.web.uri)) {
-      seen.add(chunk.web.uri);
-      sources.push({ uri: chunk.web.uri, title: chunk.web.title || chunk.web.uri });
+
+  if (candidate?.groundingMetadata?.groundingChunks) {
+    for (const chunk of candidate.groundingMetadata.groundingChunks) {
+      if (chunk.web?.uri && !seen.has(chunk.web.uri)) {
+        seen.add(chunk.web.uri);
+        sources.push({
+          uri: chunk.web.uri,
+          title: chunk.web.title || chunk.web.uri
+        });
+      }
     }
   }
+
   return { text, sources };
 }
+
 module.exports = { generateResponse };
