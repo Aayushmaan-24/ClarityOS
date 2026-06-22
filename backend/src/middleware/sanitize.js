@@ -6,22 +6,34 @@ function sanitizeText(text) {
 }
 
 function sanitizeMiddleware(req, res, next) {
-  if (req.body?.message) req.body.message = sanitizeText(req.body.message);
+  if (req.body?.message) {
+    req.body.message = sanitizeText(req.body.message);
+  }
+
   if (req.body?.history) {
-    if (typeof req.body.history === "string") {
+    let history = req.body.history;
+    if (typeof history === "string") {
       try {
-        req.body.history = JSON.parse(req.body.history);
+        history = JSON.parse(history);
       } catch (e) {
         return res.status(400).json({ error: "Invalid history JSON" });
       }
     }
-    if (!Array.isArray(req.body.history)) return res.status(400).json({ error: "Invalid history" });
-    if (req.body.history.length > 20) return res.status(400).json({ error: "History too long" });
-    req.body.history = req.body.history.map(t => ({
-      role: ["user","model"].includes(t.role) ? t.role : "user",
+
+    if (!Array.isArray(history)) {
+      return res.status(400).json({ error: "Invalid history: must be an array" });
+    }
+
+    if (history.length > 20) {
+      return res.status(400).json({ error: "History too long" });
+    }
+
+    req.body.history = history.map(t => ({
+      role: ["user", "model", "assistant"].includes(t.role) ? (t.role === "assistant" ? "model" : t.role) : "user",
       content: sanitizeText(t.content || ""),
     }));
   }
   next();
 }
+
 module.exports = { sanitizeText, sanitizeMiddleware };
