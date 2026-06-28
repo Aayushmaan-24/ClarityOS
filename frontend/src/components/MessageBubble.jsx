@@ -6,9 +6,10 @@ const fmt = (text) => {
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/^#{1,3} (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^[-•] (.+)$/gm, "<li>$1</li>")
-    .replace(/(<li>[\s\S]*?<\/li>)/g, m => `<ul>${m}</ul>`)
-    .replace(/<\/ul>\s*<ul>/g, "")
+    .replace(/((?:^[-•] .+(?:\n|$))+)/gm, (m) => {
+      const items = m.trim().split("\n").map(li => `<li>${li.replace(/^[-•] /, "").trim()}</li>`).join("");
+      return `<ul>${items}</ul>`;
+    })
     .replace(/\n\n/g, "<br><br>")
     .replace(/\n(?!<)/g, "<br>");
 };

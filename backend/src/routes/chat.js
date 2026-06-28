@@ -14,7 +14,16 @@ const upload = multer({
   },
 });
 
-router.post("/", upload.single("pdf"), sanitizeMiddleware, async (req, res) => {
+router.post("/", (req, res, next) => {
+  upload.single("pdf")(req, res, (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") return res.status(413).json({ error: "PDF too large. Max 10MB." });
+      if (err.message?.includes("Only PDF")) return res.status(415).json({ error: "Only PDF accepted." });
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, sanitizeMiddleware, async (req, res) => {
   try {
     const { toolId, message, history } = req.body;
     if (!TOOLS[toolId]) return res.status(400).json({ error: "Invalid tool ID" });
