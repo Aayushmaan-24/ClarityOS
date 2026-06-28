@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
+import DOMPurify from "dompurify";
 import { useChat } from "../hooks/useChat";
 import MessageBubble from "./MessageBubble";
 import InputBar from "./InputBar";
@@ -19,6 +20,13 @@ export default function ChatPanel({ toolId, tool }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
+  const sanitizedGreeting = useMemo(() => {
+    return DOMPurify.sanitize(tool.greeting, {
+      ALLOWED_TAGS: ["strong", "em", "h3", "ul", "li", "br", "div", "span", "p"],
+      ALLOWED_ATTR: ["class"],
+    });
+  }, [tool.greeting]);
+
   return (
     <div className="panel">
       <div className="panel-hdr">
@@ -35,7 +43,7 @@ export default function ChatPanel({ toolId, tool }) {
 
       <div className="chat-area">
         <div className="message ai">
-          <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: tool.greeting }} />
+          <div className="msg-bubble" dangerouslySetInnerHTML={{ __html: sanitizedGreeting }} />
         </div>
 
         {messages.map((msg, i) => (

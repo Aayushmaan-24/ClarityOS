@@ -17,7 +17,7 @@ export function useChat(toolId) {
       formData.append("toolId", toolId);
       if (text) formData.append("message", text);
       if (pdfFile) formData.append("pdf", pdfFile);
-      formData.append("history", JSON.stringify(history));
+      formData.append("history", JSON.stringify(history.slice(-20)));
 
       const res = await fetch(`${API_URL}/api/chat`, { method: "POST", body: formData });
       if (!res.ok) {
