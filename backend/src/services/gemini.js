@@ -6,7 +6,7 @@ if (!process.env.GEMINI_API_KEY) {
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
+  model: "gemini-2.5-flash",
   tools: [{ googleSearch: {} }],
   generationConfig: { maxOutputTokens: 2048, temperature: 0.2 },
 });
